@@ -1,43 +1,13 @@
-"use client";
 export const dynamic = 'force-dynamic';
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+export const revalidate = 0;
 
-export default function SuccessPage() {
-  const sp = useSearchParams();
-  const order = sp.get("order");
-  const [status, setStatus] = useState("Menunggu konfirmasi pembayaran...");
-  const [download, setDownload] = useState(null);
+import { Suspense } from "react";
+import SuccessClient from "./SuccessClient";
 
-  async function check() {
-    if (!order) return;
-    const res = await fetch(`/api/order-status?merchantOrderId=${order}`);
-    const data = await res.json();
-    if (data.status === "PAID") {
-      setStatus("Pembayaran terkonfirmasi ✓");
-      setDownload(data.downloadUrl);
-    } else {
-      setStatus("Belum terbayar / pending.");
-    }
-  }
-
-  useEffect(() => {
-    const id = setInterval(check, 3000);
-    return () => clearInterval(id);
-  }, [order]);
-
+export default function Page() {
   return (
-    <main className="card">
-      <h2 style={{ marginTop: 0 }}>Status Order</h2>
-      <p>Order ID: <code>{order}</code></p>
-      <p>{status}</p>
-      {download ? (
-        <a className="btn" href={download}>Download Produk</a>
-      ) : (
-        <button className="btn secondary" onClick={check}>
-          Cek status sekarang
-        </button>
-      )}
-    </main>
+    <Suspense fallback={<div>Loading status…</div>}>
+      <SuccessClient />
+    </Suspense>
   );
-  }
+}
